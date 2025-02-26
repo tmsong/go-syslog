@@ -90,13 +90,16 @@ func defaultTlsPeerName(tlsConn *tls.Conn) (tlsPeer string, ok bool) {
 }
 
 // Configure the server for listen on an UDP addr
-func (s *Server) ListenUDP(addr string) error {
-	udpAddr, err := net.ResolveUDPAddr("udp", addr)
+func (s *Server) ListenUDP(addr string, proto ...string) error {
+	if len(proto) == 0 {
+		proto = append(proto, "udp")
+	}
+	udpAddr, err := net.ResolveUDPAddr(proto[0], addr)
 	if err != nil {
 		return err
 	}
 
-	connection, err := net.ListenUDP("udp", udpAddr)
+	connection, err := net.ListenUDP(proto[0], udpAddr)
 	if err != nil {
 		return err
 	}
@@ -124,13 +127,16 @@ func (s *Server) ListenUnixgram(addr string) error {
 }
 
 // Configure the server for listen on a TCP addr
-func (s *Server) ListenTCP(addr string) error {
-	tcpAddr, err := net.ResolveTCPAddr("tcp", addr)
+func (s *Server) ListenTCP(addr string, proto ...string) error {
+	if len(proto) == 0 {
+		proto = append(proto, "tcp")
+	}
+	tcpAddr, err := net.ResolveTCPAddr(proto[0], addr)
 	if err != nil {
 		return err
 	}
 
-	listener, err := net.ListenTCP("tcp", tcpAddr)
+	listener, err := net.ListenTCP(proto[0], tcpAddr)
 	if err != nil {
 		return err
 	}
@@ -141,8 +147,11 @@ func (s *Server) ListenTCP(addr string) error {
 }
 
 // Configure the server for listen on a TCP addr for TLS
-func (s *Server) ListenTCPTLS(addr string, config *tls.Config) error {
-	listener, err := tls.Listen("tcp", addr, config)
+func (s *Server) ListenTCPTLS(addr string, config *tls.Config, proto ...string) error {
+	if len(proto) == 0 {
+		proto = append(proto, "tcp")
+	}
+	listener, err := tls.Listen(proto[0], addr, config)
 	if err != nil {
 		return err
 	}
