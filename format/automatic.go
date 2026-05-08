@@ -88,6 +88,13 @@ func (f *Automatic) automaticScannerSplit(data []byte, atEOF bool) (advance int,
 		return 0, nil, nil
 	}
 
+	// NUL framing: if a NUL byte appears before any newline, delegate to NUL splitter.
+	nulIdx := bytes.IndexByte(data, 0x00)
+	nlIdx := bytes.IndexByte(data, '\n')
+	if nulIdx >= 0 && (nlIdx < 0 || nulIdx < nlIdx) {
+		return nulScannerSplit(data, atEOF)
+	}
+
 	switch format := detect(data); format {
 	case detectedRFC6587:
 		return rfc6587ScannerSplit(data, atEOF)
@@ -95,9 +102,6 @@ func (f *Automatic) automaticScannerSplit(data []byte, atEOF bool) (advance int,
 		// the default
 		return bufio.ScanLines(data, atEOF)
 	default:
-		if err != nil {
-			return 0, nil, err
-		}
 		// Request more data
 		return 0, nil, nil
 	}
